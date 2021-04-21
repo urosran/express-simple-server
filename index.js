@@ -4,6 +4,7 @@ const chalk = require('chalk')
 const bodyParser = require("body-parser");
 const dotenv = require('dotenv');
 let multer = require("multer");
+let path = require('path')
 
 //<editor-fold desc="Server Set Up">
 const app = express();
@@ -64,6 +65,22 @@ const storage = multer.diskStorage({
         // cb(null, `${questionUid}${'SEPARATOR'}${Date.now()}${fileExtension}`);
     }
 });
-const uploadElla = multer({storage: storage});
+const upload = multer({storage: storage});
 
 //</editor-fold>
+
+const cacheTime = 3600
+
+// serve the build folder that is uploaded locally (you can host your js bundle on S3 or other hosting service if you want to)
+app.use(express.static(path.join(__dirname + '/build'), {maxAge: cacheTime}));
+
+// Atm serves the homepage
+app.get('/', function (req, res) {
+    res.sendFile(path.resolve('build/index.html'));
+})
+
+// Catch all requests
+app.get('*', function (req, res) {
+    res.sendFile(path.join(__dirname + '/build/index.html'));
+})
+
